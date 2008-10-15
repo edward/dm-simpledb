@@ -10,11 +10,10 @@ module DataMapper
       def create(resources)
         created = 0
         resources.each do |resource|
-          key = key_for(resource)
           resource_type = resource_type_for(resource)
           
-          # FIXME - will I run into problems when dealing with Floats?
-          # Should I have to check for attribute types and use Multimap#numeric ?
+          # FIXME - I have to check for attribute types and use Multimap#numeric 
+          # in order to not screw when dealing with Floats.
           # attributes_to_convert = resource.model.properties.select do |property|
           #   property.type == Float
           # end
@@ -22,8 +21,20 @@ module DataMapper
           # FIXME - also need to find some way of dealing with the Serial Property
           # A Resource with an auto-incrementing id won’t auto-increment
           
-          attributes = resource.attributes.merge(:_resource_type => resource_type)
-          domain.put_attributes(key_for(resource), Amazon::SDB::Multimap.new(attributes))
+          # TODO - Ensure there's only one key
+          
+          resource.id ||= key_for(resource)
+          attributes = resource.attributes.merge(:_sdb_resource => resource.model)
+          
+          # FIXME - This isn't "serial" per se, but it is an automatically created identifier
+          # TODO - create a DataMapper::Types::SimpleDB::Key or something to placate OCDers
+          # if resource.model.properties[:id] &&
+          #    resource.model.properties[:id].type == DataMapper::Types::Serial
+          #    
+          #    resource.attributes[:_sdb_key] = key
+          # end
+          
+          domain.put_attributes(resource.id, Amazon::SDB::Multimap.new(attributes))
           created += 1
         end
         created
@@ -42,7 +53,20 @@ module DataMapper
       end
 
       def delete(query)
-        raise NotImplementedError
+        deleted = 0
+        
+        # The value is assumed to be the sdb key:
+        # [:eql, #<Property:Tree:id>, "cf17c91somethingreallylong"]
+        operation, property, value = query.conditions.first
+        
+        if operation != :eql
+          raise NotImplementedError.new('Only singular "give me an id and I\'ll delete that entry" deletes currently supported. DataMapper refers to these options as :eql')
+        end
+        
+        domain.delete_attributes(value)
+        deleted += 1
+        
+        deleted
       end
       
       private
@@ -64,7 +88,7 @@ module DataMapper
         key = rand.to_s + Time.now.to_s
         key += resource_type_for(resource)
         key += resource.attributes.to_s
-        Digest::SHA1.hexdigest(key)
+        Digest::SHA512.hexdigest(key)
       end
       
       ## 
@@ -103,10 +127,21 @@ module DataMapper
         def destroy_model_storage(repository, model)
           sdb.delete_domain!(@uri[:domain])
         end
-      end
-    end
+        
+        module SQL
+          def supports_serial?
+            false
+          end
+        end
+        
+        include SQL
+        
+      end # module Migration
+      
+      include Migration
+    end # class SimpleDBAdapter
     
     # Comply with DataMapper module naming scheme
     SimpledbAdapter = SimpleDBAdapter
-  end
-end
+  end # module # Adapters
+end # module DataMapper

@@ -13,10 +13,9 @@ Amazon::SDB::Base::BASE_PATH = 'http://127.0.0.1:8080/'
 class Tree
   include DataMapper::Resource
   
-  property :id,           Serial
+  property :id,           String, :key => true
   property :name,         String
   property :awesomeness,  Float
 end
 
-# b = Amazon::SDB::Base.new('access_key_id', 'secret_access_key')
-# b.create_domain('dm-simpledb_test')
+DataMapper.auto_migrate!
