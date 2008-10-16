@@ -80,6 +80,8 @@ module DataMapper
       end
       
       ## 
+      # TODO - just replace this with UUID
+      # 
       # Returns a unique String based on a resource and a random salt
       # 
       # @param [DataMapper::Resource] resource to determine a hash key for
@@ -110,20 +112,17 @@ module DataMapper
         #
         # Returns whether the storage_name exists.
         #
-        # @param storage_name<String> a String defining the name of a storage,
-        #   for example a table name.
+        # @param storage_name<String> a String defining the name of a domain
         #
         # @return <Boolean> true if the storage exists
         def storage_exists?(storage_name)
           sdb.domains.detect {|d| d.name == storage_name }
         end
         
-        # TODO: move to dm-more/dm-migrations
         def create_model_storage(repository, model)
           sdb.create_domain(@uri[:domain])
         end
-
-        # TODO: move to dm-more/dm-migrations
+        
         def destroy_model_storage(repository, model)
           sdb.delete_domain!(@uri[:domain])
         end
