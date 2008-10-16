@@ -22,6 +22,10 @@ describe DataMapper::Adapters::SimpleDBAdapter do
   end
   
   it "should create a record with a floating point value" do
+    @tree.awesomeness = 8.7
+    @tree.save
+    @tree.reload
+    @tree.awesomeness.should == 8.7
   end
   
   it 'should delete a record' do
