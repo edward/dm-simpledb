@@ -29,6 +29,6 @@ describe DataMapper::Adapters::SimpleDBAdapter do
     @tree.destroy.should == true
     
     results = @domain.query(:expr => "['name' = 'Acer rubrum']")
-    results.empty?
+    results.should be_empty
   end
 end
