@@ -7,6 +7,8 @@ An experimental DataMapper adapter for SimpleDB. Currently unfit for use.
 Tested using Matthew Painter’s SimpleDB/dev http://code.google.com/p/simpledb-dev/
 Additional SimpleDB/dev setup notes found here: http://pandastream.tumblr.com/post/52779609/playing-with-panda-without-simpledb-account
 
+Greatly inspired by Jeremy Boles' dm-adapter-simpledb
+
 == Current state
 
   When starting this project, I assumed that SimpleDB allowed queries to span more than one domain. I was terribly wrong.
